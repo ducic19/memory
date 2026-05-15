@@ -1,0 +1,206 @@
+class Ploca { 
+    field Array karte;
+    static int broj_pokusaja;
+
+    constructor Ploca tabla(int x, int y){
+        let karte = Array.new(x*y);
+        let broj_pokusaja = 0;
+        return this;
+    }
+
+    method void destructor(){
+        do karte.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    method void postavi_kartice(int povrsina,Spil spil){
+        var int i;
+        let i=0;
+        while(i<povrsina){
+            let karte[i]=spil.getkartica(i);
+            let i=i+1;
+        }
+        return;
+    }
+
+    method void nacrtaj_plocu(int x, int y){
+        var int i, j, xpos, ypos;
+        var int sirina, visina, gap;
+        
+        let sirina = 40;
+        let visina = 45;
+        let gap = 10;
+
+        do Screen.clearScreen();
+        
+        let i = 0;
+        while(i < x){
+            let j = 0;
+            while(j < y){
+                do Screen.setColor(true);
+                do nacrtajjednu(i, j, x, y);
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+
+        let j = 0;
+        while(j < y){
+            let xpos = 11 + (((x * 5) - 1) / 2) + 1;
+            let ypos = (31 - ((y * 6) / 2)) + (j * 6) + 2;
+
+            if ((xpos < 23) & (ypos < 64)) { 
+                do Output.moveCursor(xpos, ypos);
+                do Output.printInt(j + 1);
+            }
+            let j = j + 1;
+        }
+
+        let i = 0;
+        while(i < x){
+            let xpos = (11 - ((x * 5) / 2)) + (i * 5) + 2;
+            let ypos = 31 + ((y * 6) / 2) + 1;
+
+            if ((xpos < 23) & (ypos < 64)) {
+                do Output.moveCursor(xpos, ypos);
+                do Output.printInt(i + 1);
+            }
+            let i = i + 1;
+        }
+
+        do azuriraj_pokusaje();
+        return;
+    }
+
+    method void azuriraj_pokusaje(){ 
+        do Output.moveCursor(0, 50);
+        do Output.printString("POKUSAJI: ");
+        do Output.printInt(broj_pokusaja);
+        return;
+    }
+
+    method void okrenuti_karticu(int x, int y, Array okrenuti, Array pronadene_kartice){
+        var int i, j, xpos, ypos;
+        let i = 0;
+
+        while (i < x){
+            let j = 0;
+            while(j < y){
+                let xpos = (11 - ((x * 3) / 2)) + (i * 5); 
+                let ypos = (31 - ((y * 6) / 2)) + (j * 6);
+
+                if (pronadene_kartice[(i * y) + j] = 0){
+                    if(okrenuti[(i * y) + j] = 0){
+                        do Screen.setColor(false);
+                        do nacrtajjednu(i, j, x, y);
+                        do Screen.setColor(true);
+                        do Output.moveCursor(xpos-1, ypos + 2);
+                        do Output.printInt(karte[(i * y) + j]);
+                    } else {
+                        do Screen.setColor(true);
+                        do nacrtajjednu(i, j, x, y);
+                    }
+                } else {
+                    do Screen.setColor(false);
+                    do nacrtajjednu(i, j, x, y);
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void nacrtajjednu(int i, int j, int x, int y){
+        var int x1, y1, x2, y2, sirina, visina, gap;
+        let sirina = 40;
+        let visina = 45;
+        let gap = 10;
+
+        let x1 = (256 - ((y * (sirina + gap)) / 2)) + (j * (sirina + gap));
+        let y1 = (128 - ((x * (visina + gap)) / 2)) + (i * (visina + gap));
+        let x2 = x1 + sirina;
+        let y2 = y1 + visina;
+
+        do Screen.drawRectangle(x1, y1, x2, y2);
+        return;
+    }
+
+    method void play(int x, int y){
+        var int povrsina, r1, r2, s1, s2, k, pronadeni;
+        var Array okrenuti, pronadene_kartice;
+        let povrsina = x * y;
+        let okrenuti = Array.new(povrsina);
+        let pronadene_kartice = Array.new(povrsina);
+        let pronadeni = 0;
+        let k = 0;
+
+        while(k < povrsina){
+            let okrenuti[k] = 1; // 1 = skriveno
+            let pronadene_kartice[k] = 0;
+            let k = k + 1;
+        }
+
+        while(pronadeni < povrsina){
+            do azuriraj_pokusaje();
+            
+            do Output.moveCursor(0, 0);
+            do Output.printString("  ");
+            do Output.moveCursor(0,0);
+            let r1 = Keyboard.readInt("Red:") - 1;
+            do Output.moveCursor(1, 0);
+            do Output.printString("  ");
+            do Output.moveCursor(1,0);
+            let s1 = Keyboard.readInt("Stupac:") - 1;
+
+            if (~(r1 < 0) & (r1 < x) & ~(s1 < 0) & (s1 < y)) {
+                let okrenuti[(r1 * y) + s1] = 0;
+                do okrenuti_karticu(x, y, okrenuti, pronadene_kartice);
+                
+                 do Output.moveCursor(0, 0);
+                 do Output.printString("     ");
+                 do Output.moveCursor(0,0);
+                let r2 = Keyboard.readInt("Red: ") - 1;
+                 do Output.moveCursor(1, 0);
+                 do Output.printString("    ");
+                 do Output.moveCursor(1,0);
+                let s2 = Keyboard.readInt("Stupac: ") - 1;
+
+                if (~(r2 < 0) & (r2 < x) & ~(s2 < 0) & (s2 < y)) {
+                    let okrenuti[(r2 * y) + s2] = 0;
+                    do okrenuti_karticu(x, y, okrenuti, pronadene_kartice);
+
+                    do Sys.wait(1500); 
+
+                    if (karte[(r1 * y) + s1] = karte[(r2 * y) + s2]) {
+                        let pronadene_kartice[(r1 * y) + s1] = 1;
+                        let pronadene_kartice[(r2 * y) + s2] = 1;
+                        let pronadeni = pronadeni + 2;
+                    } else {
+                        let okrenuti[(r1 * y) + s1] = 1;
+                        let okrenuti[(r2 * y) + s2] = 1;
+                    }
+                    
+                    let broj_pokusaja = broj_pokusaja + 1;
+                    
+                    // Čišćenje teksta unosa na vrhu
+                    do Output.moveCursor(0, 0);
+                    do Output.printString("                     ");
+                    do Output.moveCursor(1, 0);
+                    do Output.printString("                     ");
+                    
+                    do okrenuti_karticu(x, y, okrenuti, pronadene_kartice);
+                }
+            }
+        }
+
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 26);
+        do Output.printString("Pobjeda!");
+        do Output.moveCursor(11, 24);
+        do Output.printString("B R A V O !");
+        do okrenuti.dispose();
+        do pronadene_kartice.dispose();
+        return;
+    } 
+}

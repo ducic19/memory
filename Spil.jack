@@ -1,0 +1,46 @@
+class Spil {  
+    field Array kartice;
+    field int velicina;
+    static int seed;
+
+    constructor Spil new(int broj_parova, int pocetni_seed){
+        var int i; 
+        let velicina = broj_parova * 2 ;
+        let kartice = Array.new(velicina);
+        let seed=pocetni_seed;
+
+        let i=0;
+        while(i<broj_parova) {
+            let kartice[i*2]=i+1;
+            let kartice[(i*2)+1]=i+1;
+            let i=i+1; 
+        }
+        do promijesaj();
+        return this;
+    } 
+
+    //lcg generator seeda za mijesanje kartica 
+    method void promijesaj() {
+        var int i,j,temp;
+        let i=velicina-1;
+        while (i>0) {
+            // formula:
+            let seed =(seed*25173 + 13849)& 32767; 
+            let j= seed - ((seed /(i+1))*(i+1)); 
+
+            let temp = kartice[i];
+            let kartice[i]= kartice[j];
+            let kartice[j]=temp; 
+            let i=i-1; 
+        }
+        return;
+    }
+    method int getkartica(int indx) { 
+        return kartice[indx];
+    }
+    method void dispose(){
+        do kartice.dispose();
+        do Memory.deAlloc(this);
+        return; 
+    }
+}
